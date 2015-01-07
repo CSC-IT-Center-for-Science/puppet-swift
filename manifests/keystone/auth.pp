@@ -34,6 +34,8 @@ class swift::keystone::auth(
   $internal_address       = undef,
   $configure_endpoint     = true,
   $configure_s3_endpoint  = true,
+  $configure_user         = true,
+  $configure_user_role    = true,
   $endpoint_prefix        = 'AUTH',
 ) {
 
@@ -54,6 +56,8 @@ class swift::keystone::auth(
   }
 
   keystone::resource::service_identity { $auth_name:
+    configure_user      => $configure_user,
+    configure_user_role => $configure_user_role,
     configure_endpoint  => $configure_endpoint,
     service_type        => 'object-store',
     service_description => 'Openstack Object-Store Service',
@@ -78,13 +82,4 @@ class swift::keystone::auth(
     admin_url           => "${admin_protocol}://${real_admin_address}:${port}",
     internal_url        => "${internal_protocol}://${real_internal_address}:${port}",
   }
-
-  if $operator_roles {
-    #Roles like "admin" may be defined elsewhere, so use ensure_resource
-    ensure_resource('keystone_role', $operator_roles, { 'ensure' => 'present' })
-  }
-
-  # Backward compatibility
-  Keystone_user["$auth_name"] -> Keystone_user_role["${auth_name}@${tenant}"]
-
 }
